@@ -73,7 +73,7 @@ class Example(QWidget):
         self._info_data = json.load(f)
         # print(info_data)
         if 'fingers' not in self._info_data['info'][0]:
-            self._info_data['info'][0]['fingers'] = [0.0, 0.0, 0.0, 0.0, 0.0]
+            self._info_data['info'][0]['fingers'] = [0, 0, 0, 0, 0]
 
     def initUI(self):
         # 设置label提示
@@ -85,8 +85,8 @@ class Example(QWidget):
         font.setPointSize(18)  # 括号里的数字能够设置成本身想要的字体大小
         # 设置输入框
         self._qle = QLineEdit(self)
-        self._qle.resize(100, 40)
-        self._qle.move(600, 250)
+        self._qle.resize(220, 40)
+        self._qle.move(530, 250)
         self._qle.setFont(font)
         self._qle.setText(self.array2text(self._info_data['info'][0]['fingers']))
         self._qle.textChanged[str].connect(self.textChanged)
@@ -106,8 +106,18 @@ class Example(QWidget):
         self._status = QLabel(self)
         self._status.setText(os.path.split(self._pic)[-1])
         self._status.move(200, 5)
+        # 提示
+        self._tip = QLabel(self)
+        self._tip.setText('ctrl 确认   alt 清空')
+        self._tip.setFont(font)
+        self._tip.move(530,500)
+        self._tip2 = QLabel(self)
+        self._tip2.setText('填写内容为0-18代表0-180')
+        font.setPointSize(10)  # 括号里的数字能够设置成本身想要的字体大小
+        self._tip2.setFont(font)
+        self._tip2.move(530, 600)
         # 父控件
-        self.setGeometry(300, 300, 750, 650)
+        self.setGeometry(300, 300, 800, 650)
         self.setWindowTitle('数据标注')
         self.center()
         self.show()
@@ -139,25 +149,17 @@ class Example(QWidget):
 
     # 输入和数据转换
     def text2array(self, input):
-        temp = []
-        for i in input:
-            if i == '+':
-                temp.append(1.0)
-            elif i in ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']:
-                temp.append(int(i) / 10)
-            else:
-                print('输入错误')
-                QMessageBox.information(self, "Information", "输入有误")
+        temp = [10*int(i) for i in input.split()]
+        # temp = [0,0,0,0,0]
         return temp
 
     # 输入和数据转换
     def array2text(self, input):
         temp = ''
         for i in input:
-            if i == 1.0:
-                temp += '+'
-            else:
-                temp += str(int(i * 10))
+            temp += str(int(i/10))
+            temp += ' '
+        temp = temp.strip()
         return temp
 
     # 输入框数据绑定
@@ -179,10 +181,11 @@ class Example(QWidget):
         if e.key() == Qt.Key_Escape:
             self.close()
         elif e.key() == Qt.Key_Control:
+            # pass
             if (self.writeData()):
                 self.getNext()
-
-
+        elif e.key() == Qt.Key_Alt:
+            self._qle.setText('')
 if __name__ == '__main__':
     app = QApplication(sys.argv)
     ex = Example()
